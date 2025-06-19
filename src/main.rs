@@ -4,6 +4,7 @@ use crate::endpoint::Endpoint;
 
 mod endpoint;
 mod mutator;
+mod verifier;
 
 #[derive(Parser, Debug)]
 #[command(name = "coastguard")]
