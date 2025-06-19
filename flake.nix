@@ -61,10 +61,13 @@
 
         devShells.default = pkgs.mkShell {
           inputsFrom = builtins.attrValues self.checks;
+          LD_LIBRARY_PATH = nixpkgs.lib.makeLibraryPath [ pkgs.openssl ];
 
           nativeBuildInputs = with pkgs; [
             fenix-toolchain
             rust-analyzer
+            pkg-config
+            openssl
             (code {
               profiles = {
                 nix = {
