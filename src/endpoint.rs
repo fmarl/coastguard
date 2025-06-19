@@ -4,9 +4,9 @@ pub struct Domain {
 }
 
 pub struct Endpoint {
-    fqdn: String,
-    tld: String,
-    domain: Box<Domain>,
+    pub fqdn: String,
+    pub tld: String,
+    pub domain: Box<Domain>,
 }
 
 impl Domain {
