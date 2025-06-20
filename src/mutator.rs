@@ -26,16 +26,11 @@ impl MutationChainNode {
     pub fn next(&self) -> Option<&MutationChainNode> {
         self.next.as_deref()
     }
-
-    pub fn next_mut(&mut self) -> Option<&mut MutationChainNode> {
-        self.next.as_deref_mut()
-    }
 }
 
 pub struct MutationChain<V: Verifier> {
     pub verifier: V,
     pub first: MutationChainNode,
-    pub endpoints: Vec<Endpoint>,
 }
 
 impl<V: Verifier> MutationChain<V> {
@@ -43,7 +38,6 @@ impl<V: Verifier> MutationChain<V> {
         MutationChain {
             verifier,
             first,
-            endpoints: Vec::new(),
         }
     }
 
@@ -78,17 +72,12 @@ impl<V: Verifier> MutationChain<V> {
 
     fn mutate(&self, endpoint: &Endpoint) -> Vec<Endpoint> {
         let mut current_node = Some(&self.first);
-        let mut endpoints = vec![endpoint.clone()];
+        let mut endpoints = Vec::<Endpoint>::new();
 
         while let Some(node) = current_node {
-            let mut next_endpoints = Vec::new();
+            let mut mutated_endpoints = (node.mutator)(endpoint.clone());
 
-            for ep in &endpoints {
-                let mutated = (node.mutator)(ep.clone());
-                next_endpoints.extend(mutated);
-            }
-
-            endpoints = next_endpoints;
+            endpoints.append(&mut mutated_endpoints);
             current_node = node.next();
         }
 

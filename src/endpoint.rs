@@ -6,7 +6,6 @@ pub struct Domain {
 
 #[derive(Clone)]
 pub struct Endpoint {
-    pub fqdn: String,
     pub tld: String,
     pub domain: Box<Domain>,
 }
@@ -23,10 +22,22 @@ impl Endpoint {
         let root = Self::build_domain_chain(&labels);
 
         Endpoint {
-            fqdn: fqdn.to_owned(),
             tld: root.name,
             domain: root.sub_domain.expect("Endpoint doesn't seem to be a FQDN."),
         }
+    }
+
+    pub fn fqdn(&self) -> String {
+        let mut result = format!("{}.{}", self.domain.name, self.tld);
+        let mut current = &self.domain.sub_domain;
+
+        while let Some(domain) = current {
+            result = format!("{}.{}", domain.name, result);
+
+            current = &domain.sub_domain;
+        }
+        
+        return result;
     }
 
     fn build_domain_chain(parts: &[&str]) -> Box<Domain> {

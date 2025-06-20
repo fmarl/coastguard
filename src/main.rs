@@ -29,7 +29,8 @@ enum Commands {
     }
 }
 
-fn main() {
+#[tokio::main]
+async fn main() {
     let cli = Cli::parse();
 
     if cli.debug {
@@ -43,7 +44,11 @@ fn main() {
 
             let chain = MutationChain::new(DnsVerifier::new(), MutationChainNode::new(mutate_tlds));
 
-            chain.run(endp)
+            let endpoints = chain.run(&endp).await;
+
+            for endpoint in endpoints {
+                println!("Found {}", endpoint.fqdn())
+            }
         }
     }
 }
