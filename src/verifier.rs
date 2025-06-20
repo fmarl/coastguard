@@ -1,7 +1,7 @@
 use crate::endpoint::Endpoint;
 use async_trait::async_trait;
 
-mod dns;
+pub(crate) mod dns;
 
 #[async_trait]
 pub trait Verifier: Send + Sync {

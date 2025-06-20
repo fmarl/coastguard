@@ -1,8 +1,10 @@
+#[derive(Clone)]
 pub struct Domain {
     name: String,
     sub_domain: Option<Box<Domain>>,
 }
 
+#[derive(Clone)]
 pub struct Endpoint {
     pub fqdn: String,
     pub tld: String,

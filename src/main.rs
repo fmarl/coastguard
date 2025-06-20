@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::endpoint::Endpoint;
+use crate::{endpoint::Endpoint, mutator::{tlds::mutate_tlds, MutationChain, MutationChainNode}, verifier::dns::DnsVerifier};
 
 mod endpoint;
 mod mutator;
@@ -40,6 +40,10 @@ fn main() {
         Commands::Enumerate { fqdn } => {
             println!("Trying to enumerate phishing sites for {fqdn}");
             let endp = Endpoint::new(fqdn);
+
+            let chain = MutationChain::new(DnsVerifier::new(), MutationChainNode::new(mutate_tlds));
+
+            chain.run(endp)
         }
     }
 }
