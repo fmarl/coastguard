@@ -1,20 +1,7 @@
 use async_trait::async_trait;
 
-use crate::{endpoint::Endpoint, mutator::Mutator, verifier::Verifier};
+use crate::endpoint::Endpoint;
 
-pub struct LevenshteinMutator {
-    len: u16
-}
-
-impl LevenshteinMutator {
-    pub fn new(len: u16) -> Self {
-        LevenshteinMutator { len }
-    }
-}
-
-#[async_trait]
-impl Mutator for LevenshteinMutator {
-    async fn mutate<T: Verifier + 'static>(&self, source: Endpoint, verifier: T) -> Vec<Endpoint> {
-        todo!()
-    }
+fn mutate_levenshtein(source: Endpoint) -> Vec<Endpoint> {
+    todo!()
 }
