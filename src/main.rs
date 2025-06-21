@@ -6,6 +6,7 @@ mod endpoint;
 mod mutator;
 mod verifier;
 mod resources;
+mod fmt;
 
 #[derive(Parser, Debug)]
 #[command(name = "coastguard")]
@@ -44,11 +45,7 @@ async fn main() {
 
             let chain = MutationChain::new(DnsVerifier::new(), MutationChainNode::new(mutate_tlds));
 
-            let endpoints = chain.run(&endp).await;
-
-            for endpoint in endpoints {
-                println!("Found {}", endpoint.fqdn())
-            }
+            chain.run(&endp).await;
         }
     }
 }

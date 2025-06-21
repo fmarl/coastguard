@@ -13,7 +13,6 @@ impl DnsVerifier {
 #[async_trait]
 impl Verifier for DnsVerifier {
     async fn verify(&self, target: Endpoint) -> bool {
-        println!("Verifing {}", target.fqdn());
         dns_lookup::lookup_host(&target.fqdn()).is_ok()
     }
 }

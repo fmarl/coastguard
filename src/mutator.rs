@@ -1,8 +1,7 @@
-use futures::future::join_all;
+use futures::{stream, StreamExt};
 
 use crate::{
-    endpoint::{self, Endpoint},
-    verifier::Verifier,
+    endpoint::{self, Endpoint}, fmt::Link, verifier::Verifier
 };
 
 pub(crate) mod homoglyph;
@@ -60,12 +59,25 @@ impl<V: Verifier> MutationChain<V> {
     pub async fn run(&self, endpoint: &Endpoint) -> Vec<Endpoint> {
         let endpoints = self.mutate(endpoint);
 
-        let futures = endpoints.iter().map(|ep| self.verifier.verify(ep.clone()));
-        let results = join_all(futures).await;
+        let results = stream::iter(endpoints.clone())
+            .map(|ep| {
+                let verifier = &self.verifier;
+                async move {
+                    let is_valid = verifier.verify(ep.clone()).await;
 
-        endpoints
+                    if is_valid {
+                        println!("Found {}!", Link::new(&ep.fqdn()));
+                    }
+
+                    (ep, is_valid)
+                }
+            })
+            .buffer_unordered(usize::MAX)
+            .collect::<Vec<_>>()
+            .await;
+
+        results
             .into_iter()
-            .zip(results)
             .filter_map(|(ep, is_valid)| if is_valid { Some(ep) } else { None })
             .collect()
     }
