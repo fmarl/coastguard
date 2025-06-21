@@ -1,6 +1,6 @@
 use clap::{Parser, Subcommand};
 
-use crate::{endpoint::Endpoint, mutator::{tlds::mutate_tlds, MutationChain, MutationChainNode}, verifier::dns::DnsVerifier};
+use crate::{endpoint::Endpoint, mutator::{homoglyph::mutate_homoglyphs, tlds::mutate_tlds, MutationChain, MutationChainNode}, verifier::dns::DnsVerifier};
 
 mod endpoint;
 mod mutator;
@@ -43,7 +43,7 @@ async fn main() {
             println!("Trying to enumerate phishing sites for {fqdn}");
             let endp = Endpoint::new(fqdn);
 
-            let chain = MutationChain::new(DnsVerifier::new(), MutationChainNode::new(mutate_tlds));
+            let chain = MutationChain::new(DnsVerifier::new(), MutationChainNode::new(mutate_homoglyphs));
 
             chain.run(&endp).await;
         }

@@ -1,7 +1,7 @@
 #[derive(Clone)]
 pub struct Domain {
-    name: String,
-    sub_domain: Option<Box<Domain>>,
+    pub name: String,
+    pub sub_domain: Option<Box<Domain>>,
 }
 
 #[derive(Clone)]
@@ -14,6 +14,10 @@ impl Domain {
     pub fn new(name: String, sub_domain: Option<Box<Domain>>) -> Box<Self> {
         Box::new(Domain { name, sub_domain })
     }
+
+    pub fn next(&self) -> Option<&Box<Domain>> {
+        return self.sub_domain.as_ref();
+    }
 }
 
 impl Endpoint {
@@ -23,20 +27,34 @@ impl Endpoint {
 
         Endpoint {
             tld: root.name,
-            domain: root.sub_domain.expect("Endpoint doesn't seem to be a FQDN."),
+            domain: root
+                .sub_domain
+                .expect("Endpoint doesn't seem to be a FQDN."),
         }
+    }
+
+    pub fn lower_path(&self) -> Vec<&String> {
+        let mut path: Vec<&String> = Vec::new();
+        let mut current = Some(&self.domain);
+
+        while let Some(domain) = current {
+            path.push(&domain.name);
+            current = domain.next();
+        }
+
+        path
     }
 
     pub fn fqdn(&self) -> String {
         let mut result = format!("{}.{}", self.domain.name, self.tld);
-        let mut current = &self.domain.sub_domain;
+        let mut current = self.domain.next();
 
         while let Some(domain) = current {
             result = format!("{}.{}", domain.name, result);
 
-            current = &domain.sub_domain;
+            current = domain.next();
         }
-        
+
         return result;
     }
 
