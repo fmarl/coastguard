@@ -67,13 +67,6 @@
            tail (mutations-into-name (rest mutations))]
        (str head tail))))
 
-(defn mutate [name]
+(defn mutate-using-homoglyphs [name]
   (let [mutations (mutate-with-homoglyphs name)]
     (mutations-into-name mutations)))
-
-(defn flatten-endpoint-mutations [mutations tld]
-  (if (empty? mutations)
-    [tld]
-    (for [head (first mutations)
-          tail (flatten-endpoint-mutations (rest mutations) tld)]
-      (str head "." tail))))
