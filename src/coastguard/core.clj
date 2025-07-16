@@ -7,24 +7,6 @@
    [coastguard.homoglyphs :refer [mutate-using-homoglyphs]]
    [coastguard.tlds :refer [mutate-using-tlds]]))
 
-(defn cli-options
-  "Commandline options"
-  []
-  (let [opts [["-d" "--debug" "Enable debug mode"]]]
-    (cli/parse-opts *command-line-args* opts)))
-
-(defn -main
-  "Running that program!"
-  [& args]
-  (let [{:keys [options arguments errors summary]} (cli-options)]
-    (if (seq errors)
-      (println (str "Error: " errors))
-      (do
-        (when (:debug options) (println "Debug mode is on"))
-        (when (seq arguments)
-          (let [fqdn (first arguments)]
-            (println fqdn)))))))
-
 (defn deconstruct-endpoint [endpoint]
   (str/split endpoint #"\."))
 
@@ -39,21 +21,37 @@
   (let [deconstructed-endpoint (deconstruct-endpoint endpoint)]
     (map mutate-using-homoglyphs (butlast deconstructed-endpoint))))
 
-(defn tlds-mutator [_] 
+(defn tlds-mutator [_]
   (mutate-using-tlds))
 
 (defn compose-mutators [mutators endpoint]
   (apply concat (map #(% endpoint) mutators)))
 
-(defn hostnames-exist? [endpoint-mutations]
+(defn filter-existing-hostnames [endpoint-mutations]
   (pmap hostname-exists? endpoint-mutations))
 
-(defn valid-endpoint? [checked-endpoints]
+(defn filter-valid-endpoints [checked-endpoints]
   (filter (fn [x]
             (true? (last x))) checked-endpoints))
 
 (defn run [endpoint]
-  (valid-endpoint? 
-   (hostnames-exist?
-    (flatten-endpoint-mutations
-     (compose-mutators [homoglyph-mutator tlds-mutator] endpoint)))))
+  (println (str "Mutating " endpoint))
+  (let [valid-endpoints (filter-valid-endpoints
+                         (filter-existing-hostnames
+                          (flatten-endpoint-mutations
+                           (compose-mutators [homoglyph-mutator tlds-mutator] endpoint))))]
+    (run! #(println (first %)) valid-endpoints)))
+
+(def cli-options
+  [["-e" "--endpoint ENDPOINT" "Which endpoint to mutate"]
+   ["-h" "--help"]])
+
+(defn -main
+  "Running that program!"
+  [& args]
+  (let [{:keys [options _ errors summary]} (cli/parse-opts args cli-options)]
+    (if (seq errors)
+      (println (str "Error: " errors))
+      (do
+        (when (:help options) (println summary))
+        (when (:endpoint options) (run (:endpoint options)))))))

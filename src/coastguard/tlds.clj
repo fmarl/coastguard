@@ -1,4 +1,4 @@
-(ns coastguard.tlds 
+(ns coastguard.tlds
   (:require
    [clojure.java.io :refer [reader]]))
 
