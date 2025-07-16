@@ -4,7 +4,8 @@
    [clojure.string :as str]
    [clojure.tools.cli :as cli]
    [coastguard.dns :refer [hostname-exists?]]
-   [coastguard.homoglyphs :refer [flatten-endpoint-mutations mutate]]))
+   [coastguard.homoglyphs :refer [mutate-using-homoglyphs]]
+   [coastguard.tlds :refer [mutate-using-tlds]]))
 
 (defn cli-options
   "Commandline options"
@@ -27,11 +28,32 @@
 (defn deconstruct-endpoint [endpoint]
   (str/split endpoint #"\."))
 
-(defn check-homoglyphs [endpoint]
-  (let [deconstructed-endpoint (deconstruct-endpoint endpoint)
-        mutations (flatten-endpoint-mutations (map mutate (butlast deconstructed-endpoint)) (last deconstructed-endpoint))]
-    (map hostname-exists? mutations)))
+(defn flatten-endpoint-mutations [mutations]
+  (if (empty? mutations)
+    [""]
+    (for [head (first mutations)
+          tail (flatten-endpoint-mutations (rest mutations))]
+      (str head "." tail))))
 
-(defn get-valid-endpoints [checked-endpoints]
+(defn homoglyph-mutator [endpoint]
+  (let [deconstructed-endpoint (deconstruct-endpoint endpoint)]
+    (map mutate-using-homoglyphs (butlast deconstructed-endpoint))))
+
+(defn tlds-mutator [_] 
+  (mutate-using-tlds))
+
+(defn compose-mutators [mutators endpoint]
+  (apply concat (map #(% endpoint) mutators)))
+
+(defn hostnames-exist? [endpoint-mutations]
+  (pmap hostname-exists? endpoint-mutations))
+
+(defn valid-endpoint? [checked-endpoints]
   (filter (fn [x]
             (true? (last x))) checked-endpoints))
+
+(defn run [endpoint]
+  (valid-endpoint? 
+   (hostnames-exist?
+    (flatten-endpoint-mutations
+     (compose-mutators [homoglyph-mutator tlds-mutator] endpoint)))))
