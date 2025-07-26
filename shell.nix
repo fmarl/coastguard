@@ -2,7 +2,7 @@
 
 let
   pkgs = import nixpkgs { inherit system; };
-  emacs = edinix.packages.${system}.emacs {
+  emacs = edinix.emacs.${system} {
     profiles.nix.enable = true;
     profiles.clojure.enable = true;
   };
