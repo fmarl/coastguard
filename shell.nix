@@ -1,14 +1,11 @@
-{ system, nixpkgs }:
-let pkgs = import nixpkgs { inherit system; };
+{ system, nixpkgs, edinix }:
+
+let
+  pkgs = import nixpkgs { inherit system; };
+  emacs = edinix.packages.${system}.emacs {
+    profiles.nix.enable = true;
+    profiles.clojure.enable = true;
+  };
 in pkgs.mkShell {
-  buildInputs = with pkgs; [
-    clojure
-    clojure-lsp
-    clj-kondo
-    cljstyle
-    babashka
-    leiningen
-    rlwrap
-    openjdk
-  ];
+  buildInputs = with pkgs; [ babashka emacs.editor emacs.tooling ];
 }
